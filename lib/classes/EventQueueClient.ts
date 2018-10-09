@@ -36,6 +36,7 @@ export class EventQueueClient
     }
     shutdown()
     {
+        console.log('EQ SHUTDOWN!!');
         const state = new EventQueueStateChangeEvent();
         state.active = false;
         this.clientEvents.onEventQueueStateChange.next(state);
@@ -52,6 +53,7 @@ export class EventQueueClient
             'done': this.done
         };
         const startTime = new Date().getTime();
+        console.log('EQGET');
         this.capsRequestXML('EventQueueGet', req).then((data) =>
         {
             if (data['events'])
@@ -62,6 +64,7 @@ export class EventQueueClient
                     {
                         if (event['message'])
                         {
+                            console.log('Got event: ' + event['message']);
                             // noinspection TsLint
                             switch (event['message'])
                             {
@@ -351,6 +354,7 @@ export class EventQueueClient
                                 case 'TeleportFinish':
                                 {
                                     const info = event['body']['Info'][0];
+                                    console.log(info);
                                     if (info['LocationID'])
                                     {
                                         info['LocationID'] = Buffer.from(info['LocationID'].toArray()).readUInt32LE(0);
@@ -362,6 +366,8 @@ export class EventQueueClient
                                         info['SimIP'] = new IPAddress(Buffer.from(info['SimIP'].toArray()), 0).toString();
 
                                         info['TeleportFlags'] = Buffer.from(info['TeleportFlags'].toArray()).readUInt32LE(0);
+
+                                        console.log('FLAGS: ' + info['TeleportFlags']);
 
                                         const tpEvent = new TeleportEvent();
                                         tpEvent.message = '';
@@ -405,6 +411,7 @@ export class EventQueueClient
             const time = (new Date().getTime()) - startTime;
             if (time > 30000)
             {
+                console.log('ERR');
                 // This is the normal request timeout, so reconnect immediately
                 if (!this.done)
                 {
@@ -445,6 +452,7 @@ export class EventQueueClient
                 this.currentRequest = null;
                 if (err)
                 {
+                    console.log(err.code);
                     reject(err);
                 }
                 else
@@ -462,6 +470,7 @@ export class EventQueueClient
             this.caps.getCapability(capability).then((url) =>
             {
                 const serializedData = LLSD.LLSD.formatXML(data);
+                console.log('EVENT QUEUE URL: ' + url);
                 this.request(url, serializedData, 'application/llsd+xml').then((body: string) =>
                 {
                     try
@@ -474,7 +483,7 @@ export class EventQueueClient
                         else
                         {
                             // Retry caps request three times before giving up
-                            if (attempt < 3)
+                            if (attempt < 3 && capability !== 'EventQueueGet')
                             {
                                 return this.capsRequestXML(capability, data, ++attempt);
                             }

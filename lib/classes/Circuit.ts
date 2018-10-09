@@ -37,6 +37,7 @@ export class Circuit
     receivedPackets: {
         [key: number]: number
     } = {};
+    active = false;
     private clientEvents: ClientEvents;
 
     private onPacketReceived: Subject<Packet>;
@@ -65,6 +66,10 @@ export class Circuit
 
     sendMessage(message: MessageBase, flags: PacketFlags): number
     {
+        if (!this.active)
+        {
+            throw new Error('Attempting to send a message on a closed circuit');
+        }
         const packet: Packet = new Packet();
         packet.message = message;
         packet.sequenceNumber = this.sequenceNumber++;
@@ -75,6 +80,11 @@ export class Circuit
 
     resend(sequenceNumber: number)
     {
+        if (!this.active)
+        {
+            console.log('Resend triggered, but circuit is not active!');
+            return;
+        }
         if (this.awaitingAck[sequenceNumber])
         {
             const toResend: Packet = this.awaitingAck[sequenceNumber].packet;
@@ -147,10 +157,12 @@ export class Circuit
         {
 
         });
+        this.active = true;
     }
 
     shutdown()
     {
+        console.log('CIRCUIT SHUTDOWN');
         Object.keys(this.awaitingAck).forEach((sequenceNumber: string) =>
         {
             clearTimeout(this.awaitingAck[parseInt(sequenceNumber, 10)].timeout);
@@ -169,6 +181,7 @@ export class Circuit
             this.onPacketReceived.complete();
             this.onAckReceived.complete();
         }
+        this.active = false;
     }
 
     waitForMessage<T extends MessageBase>(id: Message, timeout: number, filter?: (message: T) => FilterResponse): Promise<T>
@@ -268,6 +281,7 @@ export class Circuit
         else
         {
             console.error('Attempted to send packet but UDP client is null');
+            console.trace();
         }
     }
 

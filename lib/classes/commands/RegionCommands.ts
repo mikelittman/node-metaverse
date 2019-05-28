@@ -37,9 +37,10 @@ import {Quaternion} from '../Quaternion';
 import Timer = NodeJS.Timer;
 import {RezObjectMessage} from '../messages/RezObject';
 import {PermissionMask} from '../../enums/PermissionMask';
-import {from} from 'rxjs';
+import {from, of} from 'rxjs';
 import {SelectedObjectEvent} from '../../events/SelectedObjectEvent';
 import uuid = require('uuid');
+import { AgentRequestSitMessage } from '../messages/AgentRequestSit';
 
 export class RegionCommands extends CommandsBase
 {
@@ -1453,5 +1454,19 @@ export class RegionCommands extends CommandsBase
         }
         await this.grabObject(localID, grabOffset, uvCoordinate, stCoordinate, faceIndex, position, normal, binormal);
         await this.deGrabObject(localID, grabOffset, uvCoordinate, stCoordinate, faceIndex, position, normal, binormal);
+    }
+
+    async sitOnObject(targetId: UUID, offset: Vector3 = Vector3.getZero()) {
+        const msg = new AgentRequestSitMessage();
+        msg.AgentData = {
+            AgentID: this.agent.agentID,
+            SessionID: this.circuit.sessionID
+        };
+        msg.TargetObject = {
+            TargetID: targetId,
+            Offset: offset
+        };
+        const seqID = this.circuit.sendMessage(msg, PacketFlags.Reliable);
+        await this.circuit.waitForAck(seqID, 10000);
     }
 }

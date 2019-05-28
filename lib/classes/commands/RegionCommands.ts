@@ -37,7 +37,6 @@ import {Quaternion} from '../Quaternion';
 import Timer = NodeJS.Timer;
 import {RezObjectMessage} from '../messages/RezObject';
 import {PermissionMask} from '../../enums/PermissionMask';
-import {from, of} from 'rxjs';
 import {SelectedObjectEvent} from '../../events/SelectedObjectEvent';
 import uuid = require('uuid');
 import { AgentRequestSitMessage } from '../messages/AgentRequestSit';

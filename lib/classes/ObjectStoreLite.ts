@@ -326,6 +326,10 @@ export class ObjectStoreLite implements IObjectStore
             obj.OwnerID = objData.OwnerID;
             obj.PCode = objData.PCode;
 
+            // Get positions
+            obj.setObjectData(objData.ObjectData);
+
+
             this.objects[localID].NameValue = this.parseNameValues(Utils.BufferToStringSimple(objData.NameValue));
 
             this.objects[localID].IsAttachment = this.objects[localID].NameValue['AttachItemID'] !== undefined;

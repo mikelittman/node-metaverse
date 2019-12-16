@@ -934,8 +934,7 @@ export class RegionCommands extends CommandsBase
             }
             else
             {
-                const finalPosOffset: Vector3 = obj.Position;
-                finalPos = new Vector3(new Vector3(finalPosOffset).add(new Vector3(posOffset)));
+                finalPos = new Vector3(new Vector3(obj.Position).add(new Vector3(posOffset)));
                 finalRot = obj.Rotation;
             }
             let msg: ObjectAddMessage | RezObjectMessage | null = null;
